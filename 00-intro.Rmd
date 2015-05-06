@@ -19,7 +19,7 @@ knitr::opts_chunk$set(fig.keep='last')
 source("setup.R")
 ```
 
-Authors: **Mateusz Kuzak**, **Diana Marek**, **Hedi Peterson**
+Authors: **Mateusz Kuzak**, **Diana Marek**, **Hedi Peterson**, **Tracy Teal**
 
 
 
@@ -38,16 +38,24 @@ capabilities in basic R, but ggplot2 adds more powerful plotting capabilities.
 >[official documentation](http://docs.ggplot2.org/current/).
 > -	Building step by step complex plots with ggplot2 package
 
-Load required packages
+Load required libraries
 
 ```{r}
 # plotting package
 library(ggplot2)
-# piping / chaining
-library(magrittr)
-# modern dataframe manipulations
-library(dplyr)
 ```
+
+A great resource for examples of Graphs with ggplot2  
+http://www.cookbook-r.com/Graphs/
+
+A good presentation by Karthik Ram on ggplot2
+https://github.com/datacarpentry/R-ecology/blob/gh-pages/ref/ggplot.pdf
+
+
+We're going to work with the survey data with the NAs omitted
+
+Let's just make sure we have the right data
+
 
 Load data directly from figshare.
 
@@ -55,74 +63,17 @@ Load data directly from figshare.
 surveys_raw <- read.csv("http://files.figshare.com/1919744/surveys.csv")
 ```
 
-`surveys.csv` data contains some measurements of the animals caught in plots.
-
-## Data cleaning and preparing for plotting
-
-Let's look at the summary
-
+Remove any rows that have NAs in them
 ```{r}
-summary(surveys_raw)
+surveys_complete <- surveys[complete.cases(surveys), ]
 ```
 
-There are few things we need to clean in the dataset.
-
-There is missing species_id in some records. Let's remove those.
-
+Only keep the species where there are weights associated with them
 ```{r}
-surveys <- surveys_raw %>%
-           filter(species_id != "")
+surveys_complete$species <- factor(surveys_complete$species)
 ```
 
-There are a lot of species with low counts, let's remove the ones below 10 counts
-
-```{r}
-# count records per species
-species_counts <- surveys %>%
-                  group_by(species_id) %>%
-                  summarise(n=n())
-
-# get names of those frequent species
-frequent_species <- species_counts %>%
-                    filter(n >= 10) %>%
-                    select(species_id)
-
-surveys <- surveys %>%
-           filter(species_id %in% frequent_species$species_id)
-```
-
-We saw in summary, there were NA's in weight and hindfoot_length. Let's remove
-rows with missing weights.
-
-```{r}
-surveys_weight_present <- surveys %>%
-                      filter(!is.na(weight))
-```
-
-> ### Challenge
->
-> - Do the same to remove rows without `hindfoot_length`. Save results in the new dataframe.
-
-
-```{r}
-surveys_length_present <- surveys %>%
-                      filter(!is.na(hindfoot_length))
-```
-
-- How would you get the dataframe without missing values?
-
-```{r}
-surveys_complete <- surveys_weight_present %>%
-                    filter(!is.na(hindfoot_length))
-```
-
-> We can chain filtering together using pipe operator (`%>%`) introduced earlier.
-
-```{r}
-surveys_complete <- surveys %>%
-                    filter(!is.na(weight)) %>%
-                    filter(!is.na(hindfoot_length))
-```
+Now we'll work with 'surveys_complete'
 
 > Make simple scatter plot of `hindfoot_length` (in millimeters) as a function of
 > `weight` (in grams), using basic R plotting capabilities.
@@ -166,28 +117,61 @@ ggplot(surveys_complete, aes(x = weight, y = hindfoot_length)) +
 
 ## Modifying plots
 
-- adding transparency (alpha)
+- change the size of the shapes
 
 ```{r}
 ggplot(surveys_complete, aes(x = weight, y = hindfoot_length)) +
-  geom_point(alpha=0.1)
+  geom_point(size=3)
 ```
+
 
 - adding colors
 
 ```{r}
 ggplot(surveys_complete, aes(x = weight, y = hindfoot_length)) +
-  geom_point(alpha=0.1, color="blue")
+  geom_point(color="blue")
 ```
 
-Example of complex visualisation in which plot area is divided into hexagonal
-sections and points are counted wihin hexagons. The number of points per hexagon
-is encoded by color.
+- let's add color by species
 
 ```{r}
-ggplot(surveys_complete, aes(x = weight, y = hindfoot_length)) + stat_binhex(bins=50) +
-  scale_fill_gradientn(trans="log10", colours = heat.colors(10, alpha=0.5))
+ggplot(surveys_complete, aes(x = weight, y = hindfoot_length, color=species)) +
+  geom_point()
 ```
+
+Here we're saying to use the 'species' category to decide the color of each dot.
+We could also do it by, say, plot. Try this. 
+
+- we can do the color by species and the shape by sex
+
+```{r}
+ggplot(surveys_complete, aes(x = weight, y = hindfoot_length, color=species)) +
+  geom_point(aes(shape=sex))
+```
+
+# Exercise
+
+This has all been a lot of data, and it's hard to see things, so let's just do
+the plotting for three species
+
+- Use subset to get the survey data for just the species NL, PE and SF and 
+call it surveys_s3
+
+- Plot weight by hindfoot length for just this data. Make each species a 
+different color and the sex a different shape.
+
+
+One last plot of this data. We can separate out the three species in our plot
+
+
+```{r}
+ggplot(surveys_s3, aes(x = weight, y = hindfoot_length, color=species)) +
+  geom_point(aes(shape=sex)) +
+  facet_grid(species ~ .)
+
+```
+
+
 
 ## Boxplot
 
