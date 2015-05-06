@@ -124,6 +124,18 @@ ggplot(surveys_complete, aes(x = weight, y = hindfoot_length)) +
   geom_point(size=3)
 ```
 
+- you can also add transparency (alpha) which is useful if there are a lot of points
+```{r}
+ggplot(surveys_complete, aes(x = weight, y = hindfoot_length)) +
+  geom_point(alpha=0.3)
+```
+
+- add a title
+```{r}
+ggplot(surveys_complete, aes(x = weight, y = hindfoot_length)) +
+  geom_point(alpha=0.3) +
+  ggtitle("Weight by hindfoot")
+```
 
 - adding colors
 
@@ -160,8 +172,12 @@ call it surveys_s3
 - Plot weight by hindfoot length for just this data. Make each species a 
 different color and the sex a different shape.
 
+- Bonus: Google and figure out how to create axis labels
 
-One last plot of this data. We can separate out the three species in our plot
+
+## Plotting data in different regions
+
+We can separate out the three species in our plot
 
 
 ```{r}
@@ -170,6 +186,7 @@ ggplot(surveys_s3, aes(x = weight, y = hindfoot_length, color=species)) +
   facet_grid(species ~ .)
 
 ```
+
 
 
 
